@@ -26,31 +26,33 @@ function getLayerSnapshot(layer) {
   // Extract generated attributes - should move to AttributeManager
   const {attributeManager} = layer.state;
   const {attributes} = attributeManager;
-  const props = {
-    type: layer.constructor.name,
-    numInstances: layer.getNumInstances()
-  };
-
-  if ('vertexCount' in layer.state) {
-    props.vertexCount = layer.state.vertexCount;
-  }
-
+  const props = {};
   const transferList = [];
 
   for (const attributeName in attributes) {
     const attribute = attributes[attributeName];
-    let slimAttribute;
 
-    if (ArrayBuffer.isView(attribute.value)) {
-      slimAttribute = attribute.value;
+    if (!attribute.constant && ArrayBuffer.isView(attribute.value)) {
+      props[attributeName] = attribute.value;
       transferList.push(attribute.value.buffer);
-    } else {
-      slimAttribute = {
-        constant: attribute.constant,
-        value: attribute.value
-      };
     }
-    props[attributeName] = slimAttribute;
+  }
+
+  for (const propName in layer.props) {
+    if (
+      Object.hasOwnProperty.call(layer.props, propName) &&
+      propName !== 'type' &&
+      propName !== 'data' &&
+      typeof layer.props[propName] !== 'function'
+    ) {
+      props[propName] = layer.props[propName];
+    }
+  }
+
+  props.type = layer.constructor.name;
+  props.numInstances = layer.getNumInstances();
+  if ('vertexCount' in layer.state) {
+    props.vertexCount = layer.state.vertexCount;
   }
 
   // Release resources

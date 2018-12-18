@@ -78,6 +78,16 @@ export default class LayerAttribute extends Attribute {
     return this.userData.transition;
   }
 
+  // Overrides the base class update() method
+  update(opts) {
+    if (!this.gl) {
+      // A LayerAttribute instance may be created without a WebGL context
+      // luma's Attribute.update will crash if attempt to create Buffer
+      opts.value = null;
+    }
+    super.update(opts);
+  }
+
   // Resolve transition settings object if transition is enabled, otherwise `null`
   getTransitionSetting(opts) {
     const {transition, accessor} = this.userData;
@@ -149,12 +159,10 @@ export default class LayerAttribute extends Attribute {
     if (update) {
       // Custom updater - typically for non-instanced layers
       update.call(context, this, {data, props, numInstances});
-      if (this.gl) {
-        this.update({
-          value: this.value,
-          constant: this.constant
-        });
-      }
+      this.update({
+        value: this.value,
+        constant: this.constant
+      });
       this._checkAttributeArray();
     } else if (accessor) {
       // Standard updater
@@ -208,7 +216,7 @@ export default class LayerAttribute extends Attribute {
           this.update({constant: false, buffer});
           state.needsRedraw = true;
         }
-      } else if (ArrayBuffer.isView(buffer)) {
+      } else {
         const ArrayType = glArrayFromType(this.type || GL.FLOAT);
         if (!(buffer instanceof ArrayType)) {
           throw new Error(`Attribute ${this.id} must be of type ${ArrayType.name}`);
@@ -220,9 +228,6 @@ export default class LayerAttribute extends Attribute {
           this.update({constant: false, value: buffer});
           state.needsRedraw = true;
         }
-      } else {
-        this.update(buffer);
-        state.needsRedraw = true;
       }
       return true;
     }
@@ -281,9 +286,7 @@ export default class LayerAttribute extends Attribute {
       this._normalizeValue(objectValue, value, i);
       i += size;
     }
-    if (this.gl) {
-      this.update({value});
-    }
+    this.update({value});
   }
 
   // Validate deck.gl level fields

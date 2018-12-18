@@ -82,7 +82,7 @@ export default class ScatterplotLayer extends Layer {
       if (this.state.model) {
         this.state.model.delete();
       }
-      this.setState({model: gl && this._getModel(gl)});
+      this.setState({model: this._getModel(gl)});
       this.getAttributeManager().invalidateAll();
     }
   }
@@ -101,6 +101,9 @@ export default class ScatterplotLayer extends Layer {
   }
 
   _getModel(gl) {
+    if (!gl) {
+      return null;
+    }
     // a square that minimally cover the unit circle
     const positions = [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0];
 

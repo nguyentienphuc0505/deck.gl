@@ -13,7 +13,7 @@ export default {
       'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/website/bart-lines.json',
     getPath: d => d.path,
     getColor: d => d.color.match(/\w\w/g).map(x => parseInt(x, 16)),
-    getWidth: d => 50
+    getWidth: 50
   },
   'SF Zipcodes': {
     type: 'SolidPolygonLayer',

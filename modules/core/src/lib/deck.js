@@ -28,19 +28,12 @@ import log from '../utils/log';
 import GL from 'luma.gl/constants';
 import {AnimationLoop, createGLContext, trackContextState, setParameters} from 'luma.gl';
 import {Stats} from 'probe.gl';
-// import {EventManager} from 'mjolnir.js';
+import {EventManager} from 'mjolnir.js';
 
 import assert from '../utils/assert';
 import VENDOR_PREFIX from '../utils/css-vendor-prefix';
 import {EVENTS} from './constants';
 /* global document */
-
-let EventManager = null;
-try {
-  EventManager = require('mjolnir.js').EventManager;
-} catch (err) {
-  // hammer
-}
 
 function noop() {}
 
