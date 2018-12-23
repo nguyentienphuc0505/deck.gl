@@ -8,6 +8,8 @@
 
 The Icon Layer renders raster icons at given coordinates.
 
+## Pre-packed iconAtlas
+
 ```js
 import DeckGL, {IconLayer} from 'deck.gl';
 
@@ -28,6 +30,8 @@ const App = ({data, viewport}) => {
     id: 'icon-layer',
     data,
     pickable: true,
+    // iconAtlas and iconMapping are required
+    // getIcon: return a string
     iconAtlas: 'images/icon-atlas.png',
     iconMapping: {
       marker: {
@@ -39,9 +43,58 @@ const App = ({data, viewport}) => {
         mask: true
       }
     },
+    getIcon: d => 'marker',
+
     sizeScale: 15,
     getPosition: d => d.coordinates,
-    getIcon: d => 'marker',
+    getSize: d => 5,
+    getColor: d => [Math.sqrt(d.exits), 140, 0],
+    onHover: ({object, x, y}) => {
+      const tooltip = `${object.name}\n${object.address}`;
+      /* Update tooltip
+         http://deck.gl/#/documentation/developer-guide/adding-interactivity?section=example-display-a-tooltip-for-hovered-object
+      */
+    }
+  });
+
+  return (<DeckGL {...viewport} layers={[layer]} />);
+};
+```
+
+## Auto packing iconAtlas
+
+```js
+import DeckGL, {IconLayer} from 'deck.gl';
+
+const ICON_MAPPING = {
+  marker: {x: 0, y: 0, width: 32, height: 32, mask: true}
+};
+
+const App = ({data, viewport}) => {
+
+  /**
+   * Data format:
+   * [
+   *   {name: 'Colma (COLM)', avatar_url: 'https://images/colma_avatar.png', address: '365 D Street, Colma CA 94014', exits: 4214, coordinates: [-122.466233, 37.684638]},
+   *   ...
+   * ]
+   */
+  const layer = new IconLayer({
+    id: 'icon-layer',
+    data,
+    pickable: true,
+    // iconAtlas and iconMapping should not be provided
+    // getIcon return an object which contains url to fetch icon
+    getIcon: d => ({
+      url: d.avatar_url,
+      width: 128,
+      height: 128,
+      anchorY: 128,
+      mask: true
+    }),
+
+    sizeScale: 15,
+    getPosition: d => d.coordinates,
     getSize: d => 5,
     getColor: d => [Math.sqrt(d.exits), 140, 0],
     onHover: ({object, x, y}) => {
@@ -62,6 +115,8 @@ Inherits from all [Base Layer](/docs/api-reference/layer.md) properties.
 
 ### Render Options
 
+#### Pre-packed iconAtlas
+
 ##### `iconAtlas` (Texture2D | String, required)
 
 Atlas image url or texture
@@ -80,6 +135,29 @@ Icon names mapped to icon definitions. Each icon is defined with the following v
   If `true`, user defined color is applied.
   If `false`, pixel color from the image is applied. User still can specify the opacity through getColor.
   Default: `false`
+  
+##### `getIcon` (Function, optional)
+
+* Default: `d => d.icon`
+
+Method called to retrieve the icon name of each object, returns string.
+
+#### Auto packing iconAtlas
+
+`iconAtlas` and `iconMapping` should not be provided in this case, otherwise it may cause error since `IconLayer` will attempt to retrieve icons from given pre-packed `iconAtlas`
+
+##### `getIcon` (Function, optional)
+
+* Default: `d => d.icon`
+
+Return an object which contains the following properties. 
+
+* `url`: url to fetch the icon
+* `height`: height of icon
+* `width`: width of icon
+* `anchorX`, `anchorY`, `mask` are the same as mentioned in `iconMapping`
+
+#### Options in both pre-packed and auto packing cases
 
 ##### `sizeScale` (Number, optional)
 
@@ -101,11 +179,6 @@ Whether the layer should be rendered in high-precision 64-bit mode. Note that si
 
 Method called to retrieve the position of each object, returns `[lng, lat, z]`.
 
-##### `getIcon` (Function, optional)
-
-* Default: `d => d.icon`
-
-Method called to retrieve the icon name of each object, returns string.
 
 ##### `getSize` (Function|Number, optional) ![transition-enabled](https://img.shields.io/badge/transition-enabled-green.svg?style=flat-square")
 
