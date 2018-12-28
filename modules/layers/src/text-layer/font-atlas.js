@@ -1,5 +1,6 @@
 /* global document */
 import {Texture2D} from 'luma.gl';
+import TinySDF from '@mapbox/tiny-sdf';
 
 const GL_TEXTURE_WRAP_S = 0x2802;
 const GL_TEXTURE_WRAP_T = 0x2803;
@@ -8,12 +9,20 @@ const MAX_CANVAS_WIDTH = 1024;
 const DEFAULT_FONT_SIZE = 64;
 const DEFAULT_PADDING = 4;
 
-const BASELINE_SCALE = 0.9;
 const HEIGHT_SCALE = 1.2;
 
 export const DEFAULT_CHAR_SET = [];
 for (let i = 32; i < 128; i++) {
   DEFAULT_CHAR_SET.push(String.fromCharCode(i));
+}
+
+function makeRGBAImageData(ctx, alphaChannel, size) {
+  const imageData = ctx.createImageData(size, size);
+  const data = imageData.data;
+  for (let i = 0; i < alphaChannel.length; i++) {
+    data[4 * i + 3] = alphaChannel[i];
+  }
+  return imageData;
 }
 
 function setTextStyle(ctx, fontFamily, fontSize) {
@@ -34,6 +43,15 @@ export function makeFontAtlas(
 ) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
+
+  const tinySDF = new TinySDF(
+    fontSize,
+    0, // buffer
+    1, // radius
+    0.25, // cutoff
+    fontFamily,
+    'normal' // fontWeight
+  );
 
   // measure texts
   let row = 0;
@@ -66,7 +84,8 @@ export function makeFontAtlas(
 
   setTextStyle(ctx, fontFamily, fontSize);
   for (const char in mapping) {
-    ctx.fillText(char, mapping[char].x, mapping[char].y + fontSize * BASELINE_SCALE);
+    const image = makeRGBAImageData(ctx, tinySDF.draw(char), fontSize);
+    ctx.putImageData(image, mapping[char].x, mapping[char].y);
   }
 
   return {
