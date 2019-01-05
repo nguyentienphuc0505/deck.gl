@@ -47,7 +47,7 @@ export function makeFontAtlas(
   const tinySDF = new TinySDF(
     fontSize,
     0, // buffer
-    1, // radius
+    3, // radius
     0.25, // cutoff
     fontFamily,
     'normal' // fontWeight

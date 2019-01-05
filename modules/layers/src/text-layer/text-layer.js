@@ -44,6 +44,9 @@ const defaultProps = {
   sizeScale: 1,
   fontFamily: DEFAULT_FONT_FAMILY,
   characterSet: DEFAULT_CHAR_SET,
+  // https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0933af6f817
+  cutoff: 196.0 / 255.0,
+  fontSmoothing: 0.2,
 
   getText: {type: 'accessor', value: x => x.text},
   getPosition: {type: 'accessor', value: x => x.position},
@@ -171,6 +174,8 @@ export default class TextLayer extends CompositeLayer {
       getTextAnchor,
       getAlignmentBaseline,
       getPixelOffset,
+      cutoff,
+      fontSmoothing,
       fp64,
       sizeScale,
       transitions,
@@ -194,8 +199,11 @@ export default class TextLayer extends CompositeLayer {
           getAnchorX: this.getAnchorXFromTextAnchor(getTextAnchor),
           getAnchorY: this.getAnchorYFromAlignmentBaseline(getAlignmentBaseline),
           getPixelOffset: this._getAccessor(getPixelOffset),
+          cutoff,
           fp64,
           sizeScale: sizeScale * scale,
+          fontSmoothing,
+
           transitions: transitions && {
             getPosition: transitions.getPosition,
             getAngle: transitions.getAngle,

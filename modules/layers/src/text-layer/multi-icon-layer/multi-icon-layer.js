@@ -21,8 +21,12 @@
 import IconLayer from '../../icon-layer/icon-layer';
 
 import vs from './multi-icon-layer-vertex.glsl';
+import fs from './multi-icon-layer-fragment.glsl';
 
 const defaultProps = {
+  fontSmoothing: 0,
+  cutoff: 192.0 / 255.0,
+
   getShiftInQueue: {type: 'accessor', value: x => x.shift || 0},
   getLengthOfQueue: {type: 'accessor', value: x => x.len || 1},
   // 1: left, 0: middle, -1: right
@@ -35,7 +39,8 @@ const defaultProps = {
 export default class MultiIconLayer extends IconLayer {
   getShaders() {
     return Object.assign({}, super.getShaders(), {
-      vs
+      vs,
+      fs
     });
   }
 
@@ -62,6 +67,18 @@ export default class MultiIconLayer extends IconLayer {
     ) {
       this.getAttributeManager().invalidate('instanceOffsets');
     }
+  }
+
+  draw({uniforms}) {
+    const {cutoff, fontSmoothing, sizeScale} = this.props;
+
+    super.draw({
+      uniforms: Object.assign({}, uniforms, {
+        cutoff,
+        // TODO: handle for individual sizes using this.props.getSize()
+        smoothing: sizeScale > 0 ? fontSmoothing / sizeScale : 0
+      })
+    });
   }
 
   calculateInstanceOffsets(attribute) {

@@ -110,6 +110,23 @@ Whether the layer should be rendered in high-precision 64-bit mode. Note that si
 
 Specifies a prioritized list of one or more font family names and/or generic family names. Follow the specs for CSS [font-family](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family).
 
+### Advanced Options 
+
+If you would like to tune the text rendering for deep zoom level, you can manipulate `cutoff` and `fontSmoothing`. 
+The implementation is based on [Drawing Text with Signed Distance Fields in Mapbox GL](https://blog.mapbox.com/drawing-text-with-signed-distance-fields-in-mapbox-gl-b0933af6f817) 
+
+##### `cutoff` (Number, optional)
+
+* Default: 192 / 255
+
+`cutoff` decides the inside and outside the glyph. `0` to `cutoff` indicates inside, `cutoff` to `1` indicates outside.
+
+##### `fontSmoothing` (Number, optional)
+
+* Default: 0.2
+
+Specifies the smoothing threshold to get an antialiased look.
+
 ##### `characterSet` (Array | String, optional)
 
 Specifies a list of characters to include in the font. By default, only characters in the Ascii code range 32-128 are included. Use this prop if you need to display special characters.
