@@ -126,9 +126,9 @@ export default class IconLayer extends Layer {
     const attributeManager = this.getAttributeManager();
 
     if (iconAtlas) {
-      this._updatePrePacked({oldProps, props});
+      this._updatePrePacked({oldProps, props, changeFlags});
     } else if (data && changeFlags.dataChanged) {
-      this._updateAutoPacking({oldProps, props});
+      this._updateAutoPacking({oldProps, props, changeFlags});
     }
 
     if (props.fp64 !== oldProps.fp64) {
@@ -210,8 +210,8 @@ export default class IconLayer extends Layer {
     }
   }
 
-  _updateAutoPacking({props}) {
-    const {data, getIcon, updateTriggers} = props;
+  _updateAutoPacking({props, changeFlags}) {
+    const {data, getIcon} = props;
     const {gl} = this.context;
     const attributeManager = this.getAttributeManager();
 
@@ -230,7 +230,11 @@ export default class IconLayer extends Layer {
 
     iconManager.setData(props.data);
     if (this.state.iconMapping !== iconManager.mapping) {
-      if (updateTriggers && updateTriggers.getIcon) {
+      if (
+        changeFlags &&
+        changeFlags.updateTriggersChanged &&
+        changeFlags.updateTriggersChanged.getIcon
+      ) {
         attributeManager.invalidate('getIcon');
       }
       this._updateIconMapping(iconManager.mapping);
