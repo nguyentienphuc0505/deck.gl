@@ -1,7 +1,7 @@
 /* eslint-disable */
 import test from 'tape';
 import {gl} from '@deck.gl/test-utils';
-import {IconManager} from '@deck.gl/layers';
+import {buildMapping} from '@deck.gl/layers/icon-layer/icon-manager';
 
 test('IconManager', t => {
   const data = [
@@ -44,49 +44,50 @@ test('IconManager', t => {
         anchorY: 28,
         url: '/icon/4'
       }
-    },
-    {
-      icon: {
-        width: 48,
-        height: 48,
-        anchorY: 48,
-        url: '/icon/5'
-      }
-    },
-    {
-      icon: {
-        width: 24,
-        height: 24,
-        anchorY: 24,
-        url: '/icon/6'
-      }
-    },
-    {
-      icon: {
-        width: 12,
-        height: 12,
-        anchorY: 12,
-        url: '/icon/7'
-      }
     }
   ];
 
-  const getIcon = d => d.icon;
+  /*
+   *   +-----------+----------------+----------------+
+   *   | /icon/0 | /icon/1          |                |
+   *   |         |                  |                |
+   *   |         |                  |                |
+   *   |         |                  |                |
+   *   |         |                  |                |
+   *   |         |                  |                |
+   *   +---------+------------------+----------------+
+   *   | /icon/2                    | /icon/3   |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   |                            |           |    |
+   *   +----------------------------+-----------+----+
+   *   | /icon/4             |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   |                     |                       |
+   *   +-------------------+----------+--------------+
+  */
 
   const expected = {
     '/icon/0': Object.assign({}, data[0].icon, {x: 0, y: 0}),
-    '/icon/1': Object.assign({}, data[1].icon, {x: 16, y: 0}),
-    '/icon/2': Object.assign({}, data[2].icon, {x: 0, y: 28}),
-    '/icon/3': Object.assign({}, data[3].icon, {x: 40, y: 28}),
-    '/icon/4': Object.assign({}, data[4].icon, {x: 0, y: 68}),
-    '/icon/5': Object.assign({}, data[5].icon, {x: 0, y: 100}),
-    '/icon/6': Object.assign({}, data[6].icon, {x: 0, y: 152}),
-    '/icon/7': Object.assign({}, data[7].icon, {x: 28, y: 152})
+    '/icon/1': Object.assign({}, data[1].icon, {x: 12, y: 0}),
+    '/icon/2': Object.assign({}, data[2].icon, {x: 0, y: 24}),
+    '/icon/3': Object.assign({}, data[3].icon, {x: 36, y: 24}),
+    '/icon/4': Object.assign({}, data[4].icon, {x: 0, y: 60})
   };
 
-  const iconManager = new IconManager(gl, {data, getIcon, maxCanvasWidth: 64});
+  const {mapping, canvasHeight} = buildMapping({icons: data.map(d => d.icon), maxCanvasWidth: 64});
 
-  t.deepEqual(iconManager.mapping, expected, 'Should generate mapping as expectation.');
+  t.deepEqual(mapping, expected, 'Should generate mapping as expectation.');
+  t.equal(canvasHeight, 128, 'Canvas height should match expectation.');
 
   t.end();
 });
