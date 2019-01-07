@@ -27,6 +27,27 @@ function buildRowMapping(mapping, columns, yOffset) {
   }
 }
 
+function getIcons(data, getIcon) {
+  if (!data) {
+    return null;
+  }
+
+  return data.reduce((resMap, point) => {
+    const icon = getIcon(point);
+    if (!resMap[icon.url]) {
+      resMap[icon.url] = icon;
+    }
+    return resMap;
+  }, {});
+}
+
+// check if there are some icons from new data not fetched
+export function needRepack(oldData, data, getIcon) {
+  const oldIcons = getIcons(oldData, getIcon) || {};
+  const icons = getIcons(data, getIcon) || {};
+  return !Object.keys(icons).every(icon => oldIcons[icon]);
+}
+
 /**
  * Generate coordinate mapping to retrieve icon left-top position from an icon atlas
  * @param icons {Array<Object>} list of icons, each icon requires url, width, height
@@ -88,7 +109,7 @@ export function buildMapping({icons, maxCanvasWidth, maxCanvasHeight}) {
   const canvasHeight = nextPowOfTwo(rowHeight + yOffset);
   return {
     mapping,
-    canvasHeight // yOffset + height of last row
+    canvasHeight
   };
 }
 
@@ -120,11 +141,7 @@ export default class IconManager {
     }
   }
 
-  get mapping() {
-    return this._mapping;
-  }
-
-  get texture() {
+  getTexture() {
     return this._texture;
   }
 
@@ -155,27 +172,10 @@ export default class IconManager {
   }
 
   _updateAutoPacking({oldProps, props}) {
-    const oldIcons = this._getIcons(oldProps.data) || {};
-    const icons = this._getIcons(props.data) || {};
-    const iconsChanged = !Object.keys(icons).every(icon => oldIcons[icon.url]);
-    if (iconsChanged) {
+    if (needRepack(oldProps.data, props.data, this.getIcon)) {
       // if any icons are not fetched, re-layout the entire icon texture
       this._autoPackTexture(props.data);
     }
-  }
-
-  _getIcons(data) {
-    if (!data) {
-      return null;
-    }
-
-    return data.reduce((resMap, point) => {
-      const icon = this.getIcon(point);
-      if (!resMap[icon.url]) {
-        resMap[icon.url] = icon;
-      }
-      return resMap;
-    }, {});
   }
 
   _loadPrePackedTexture(iconAtlas) {
@@ -203,40 +203,40 @@ export default class IconManager {
   }
 
   _autoPackTexture(data) {
-    const {maxCanvasWidth, maxCanvasHeight} = this;
+    const {maxCanvasWidth, maxCanvasHeight, getIcon} = this;
     if (data) {
       // generate icon mapping
       const {mapping, canvasHeight} = buildMapping({
-        icons: Object.values(this._getIcons(data)),
+        icons: Object.values(getIcons(data, getIcon)),
         maxCanvasWidth,
         maxCanvasHeight
       });
 
+      this._mapping = mapping;
+
       // create new texture
-      const texture = new Texture2D(this.gl, {
+      this._texture = new Texture2D(this.gl, {
         width: this.maxCanvasWidth,
         height: canvasHeight
       });
 
-      this._mapping = mapping;
-      this._texture = texture;
       this.onUpdate({mappingChanged: true, textureChanged: true});
 
       // load images
-      this._loadImages(mapping, texture, data);
+      this._loadImages(data);
     }
   }
 
-  _loadImages(mapping, texture, data) {
+  _loadImages(data) {
     for (let i = 0; i < data.length; i++) {
       const icon = this.getIcon(data[i]);
       if (icon.url) {
         loadImages({urls: [icon.url]}).then(([imageData]) => {
-          const iconMapping = mapping[icon.url];
+          const iconMapping = this._mapping[icon.url];
           const {x, y, width, height} = iconMapping;
 
           // update texture
-          texture.setSubImageData({
+          this._texture.setSubImageData({
             data: imageData,
             x,
             y,
@@ -249,7 +249,7 @@ export default class IconManager {
             }
           });
           // Call to regenerate mipmaps after modifying texture(s)
-          texture.generateMipmap();
+          this._texture.generateMipmap();
 
           this.onUpdate({textureChanged: true});
         });

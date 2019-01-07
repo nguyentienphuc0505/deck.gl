@@ -1,9 +1,7 @@
-/* eslint-disable */
 import test from 'tape';
-import {gl} from '@deck.gl/test-utils';
-import {buildMapping} from '@deck.gl/layers/icon-layer/icon-manager';
+import {buildMapping, needRepack} from '@deck.gl/layers/icon-layer/icon-manager';
 
-test('IconManager', t => {
+test('IconManager#buildMapping', t => {
   const data = [
     {
       icon: {
@@ -88,6 +86,92 @@ test('IconManager', t => {
 
   t.deepEqual(mapping, expected, 'Should generate mapping as expectation.');
   t.equal(canvasHeight, 128, 'Canvas height should match expectation.');
+
+  t.end();
+});
+
+test('IconManager#needRepack', t => {
+  let oldData = null;
+  let data = [];
+  const getIcon = d => d.icon;
+
+  t.notOk(
+    needRepack(oldData, data, getIcon),
+    'Do not need repack when both oldData and data are empty.'
+  );
+
+  oldData = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    },
+    {
+      icon: {
+        url: '/icon/2'
+      }
+    }
+  ];
+  data = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    },
+    {
+      icon: {
+        url: '/icon/2'
+      }
+    }
+  ];
+  t.notOk(needRepack(oldData, data, getIcon), 'Do not need repack when icon urls do not change.');
+
+  oldData = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    },
+    {
+      icon: {
+        url: '/icon/2'
+      }
+    }
+  ];
+  data = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    }
+  ];
+  t.notOk(needRepack(oldData, data, getIcon), 'Do not need repack when no new icons are required.');
+
+  oldData = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    },
+    {
+      icon: {
+        url: '/icon/2'
+      }
+    }
+  ];
+  data = [
+    {
+      icon: {
+        url: '/icon/1'
+      }
+    },
+    {
+      icon: {
+        url: '/icon/3'
+      }
+    }
+  ];
+  t.ok(needRepack(oldData, data, getIcon), 'Need repack when new icons are required.');
 
   t.end();
 });

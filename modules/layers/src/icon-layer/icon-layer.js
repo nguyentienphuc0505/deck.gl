@@ -158,7 +158,7 @@ export default class IconLayer extends Layer {
     const {sizeScale} = this.props;
     const {iconManager} = this.state;
 
-    const iconsTexture = iconManager.texture;
+    const iconsTexture = iconManager.getTexture();
     if (iconsTexture) {
       this.state.model.render(
         Object.assign({}, uniforms, {
