@@ -119,7 +119,7 @@ The implementation is based on [Drawing Text with Signed Distance Fields in Mapb
 
 * Default: 192 / 255
 
-`cutoff` decides the inside and outside the glyph. `0` to `cutoff` indicates inside, `cutoff` to `1` indicates outside.
+`cutoff` decides each pixel is inside or outside the glyph. `0` to `cutoff` indicates inside, `cutoff` to `1` indicates outside.
 
 ##### `fontSmoothing` (Number, optional)
 
